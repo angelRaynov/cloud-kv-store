@@ -1,6 +1,8 @@
 package main
 
-import "errors"
+import (
+	"errors"
+)
 
 var store = make(map[string]string)
 var ErrNoSuchKey = errors.New("no such key")
