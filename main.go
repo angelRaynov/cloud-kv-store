@@ -9,6 +9,10 @@ import (
 )
 
 func main() {
+	err := initializeTransactionLog()
+	if err != nil {
+		log.Fatalf("initializing transaction log")
+	}
 	r := mux.NewRouter()
 	r.HandleFunc("/v1/{key}", keyValuePutHandler).Methods("PUT")
 	r.HandleFunc("/v1/{key}", keyValueGetHandler).Methods("GET")
@@ -35,6 +39,8 @@ func keyValuePutHandler(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
+
+	logger.WritePut(key, string(value))
 
 	err = Put(key, string(value))
 	if err != nil {
@@ -66,6 +72,8 @@ func keyValueGetHandler(w http.ResponseWriter, r *http.Request) {
 func keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["key"]
+
+	logger.WriteDelete(key)
 	err := Delete(key)
 
 	if errors.Is(err, ErrNoSuchKey) {
