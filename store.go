@@ -2,18 +2,27 @@ package main
 
 import (
 	"errors"
+	"sync"
 )
 
-var store = make(map[string]string)
+var store = struct {
+	sync.RWMutex
+	m map[string]string
+}{m: make(map[string]string)}
+
 var ErrNoSuchKey = errors.New("no such key")
 
 func Put(k, v string) error {
-	store[k] = v
+	store.Lock()
+	defer store.Unlock()
+	store.m[k] = v
 	return nil
 }
 
 func Get(key string) (string, error) {
-	val, ok := store[key]
+	store.RLock()
+	defer store.RUnlock()
+	val, ok := store.m[key]
 	if !ok {
 		return "", ErrNoSuchKey
 	}
@@ -21,6 +30,8 @@ func Get(key string) (string, error) {
 }
 
 func Delete(key string) error {
-	delete(store,key)
+	store.Lock()
+	defer store.Unlock()
+	delete(store.m, key)
 	return nil
 }
